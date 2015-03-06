@@ -25,7 +25,7 @@ data <- tbl_df(read.csv(unz(zipfile, "activity.csv"),
 #data <- data.raw %>% filter(!is.na(steps))
 
 # freeing some memory
-rm(data.raw)
+#rm(data.raw)
 rm(zipfile)
 
 str(data)
@@ -50,11 +50,15 @@ ggplot(totalStepsPerDay, aes(date)) +
       labs(title = "Total number of steps taken per day") +
       labs(x = "Day", y = "# of Steps") +
       scale_y_continuous(labels = comma)
+
+rm(totalStepsPerDay)
 ```
 
 
 
 3. Calculate and report the mean and median of the total number of steps taken per day
+
+### Mean
 ```{r echo=TRUE}
 meanStepsPerDay <- data %>% filter(!is.na(steps)) %>% group_by(date) %>% summarize(mn = mean(steps))
 ggplot(meanStepsPerDay, aes(date, mn)) +
@@ -62,8 +66,12 @@ ggplot(meanStepsPerDay, aes(date, mn)) +
       geom_point(size = 4, alpha = 1/2)  +	
       labs(title = "Mean number of steps taken per day") +
       labs(x = "Day", y = "Mean # of Steps")
+
+rm(meanStepsPerDay)
 ```
 
+
+### Median
 ```{r echo=TRUE}
 medianStepsPerDay <- data %>% filter(!is.na(steps) & steps > 0) %>% group_by(date) %>% summarize(mn = median(steps))
 ggplot(medianStepsPerDay, aes(date, mn)) +
@@ -72,14 +80,33 @@ ggplot(medianStepsPerDay, aes(date, mn)) +
       labs(title = "Median number of steps taken per day") +
       labs(x = "Day", y = "Median # of Steps")
 
+rm(medianStepsPerDay)
 ```
 
 ## What is the average daily activity pattern?
 
 
+1.Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+```{r echo=TRUE}
+averageSteps <- data %>% filter(!is.na(steps)) %>% group_by(interval) %>% summarize(mn = mean(steps))
+ggplot(averageSteps, aes(interval, mn)) +
+      geom_line(size=2, alpha=1/4) +
+      geom_point(size = 2, alpha = 1/2)  +  
+      labs(title = "Mean number of steps taken per inteval") +
+      labs(x = "Interval", y = "Mean # of Steps")
+
+rm(averageSteps)
+```
+
+2.Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+```{r echo=TRUE}
+data %>% filter(!is.na(steps)) %>% group_by(interval) %>% summarize(sm = sum(steps)) %>% top_n(1)
+```
+
 
 ## Imputing missing values
 
-
+```{r echo=TRUE}
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?

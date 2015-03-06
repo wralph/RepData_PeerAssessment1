@@ -21,14 +21,7 @@ data <- tbl_df(read.csv(unz(zipfile, "activity.csv"),
 #data <- data.raw %>% filter(!is.na(steps))
 
 # freeing some memory
-rm(data.raw)
-```
-
-```
-## Warning in rm(data.raw): object 'data.raw' not found
-```
-
-```r
+#rm(data.raw)
 rm(zipfile)
 
 str(data)
@@ -133,6 +126,8 @@ ggplot(totalStepsPerDay, aes(date)) +
 
 3. Calculate and report the mean and median of the total number of steps taken per day
 
+### Mean
+
 ```r
 meanStepsPerDay <- data %>% filter(!is.na(steps)) %>% group_by(date) %>% summarize(mn = mean(steps))
 ggplot(meanStepsPerDay, aes(date, mn)) +
@@ -144,6 +139,8 @@ ggplot(meanStepsPerDay, aes(date, mn)) +
 
 ![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
+
+### Median
 
 ```r
 medianStepsPerDay <- data %>% filter(!is.na(steps) & steps > 0) %>% group_by(date) %>% summarize(mn = median(steps))
@@ -158,6 +155,36 @@ ggplot(medianStepsPerDay, aes(date, mn)) +
 
 ## What is the average daily activity pattern?
 
+
+1.Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```r
+averageSteps <- data %>% filter(!is.na(steps)) %>% group_by(interval) %>% summarize(mn = mean(steps))
+ggplot(averageSteps, aes(interval, mn)) +
+      geom_line(size=2, alpha=1/4) +
+      geom_point(size = 2, alpha = 1/2)  +  
+      labs(title = "Mean number of steps taken per inteval") +
+      labs(x = "Interval", y = "Mean # of Steps")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
+
+2.Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```r
+data %>% filter(!is.na(steps)) %>% group_by(interval) %>% summarize(sm = sum(steps)) %>% top_n(1)
+```
+
+```
+## Selecting by sm
+```
+
+```
+## Source: local data frame [1 x 2]
+## 
+##   interval    sm
+## 1      835 10927
+```
 
 
 ## Imputing missing values
