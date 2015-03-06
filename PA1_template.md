@@ -22,10 +22,6 @@ data <- tbl_df(read.csv(unz(zipfile, "activity.csv"),
                   colClasses=c("numeric", "POSIXct", "numeric"),
                   stringsAsFactors=FALSE, 
                   header=TRUE))
-#data <- data.raw %>% filter(!is.na(steps))
-
-# freeing some memory
-#rm(data.raw)
 rm(zipfile)
 
 str(data)
@@ -44,7 +40,10 @@ str(data)
 1. Calculate the total number of steps taken per day
 
 ```r
-totalStepsPerDay <- data %>% filter(!is.na(steps)) %>% group_by(date) %>% summarize(tot = sum(steps))
+totalStepsPerDay <- data %>% 
+                    filter(!is.na(steps)) %>% 
+                    group_by(date) %>% 
+                    summarize(tot = sum(steps))
 totalStepsPerDay
 ```
 
@@ -111,8 +110,6 @@ totalStepsPerDay
 
 
 ```r
-#totalStepsPerDay <- data %>% group_by(date) %>% summarize(tot = sum(steps))
-
 ggplot(totalStepsPerDay, aes(date)) +
       geom_histogram(alpha=1/4) +
       labs(title = "Total number of steps taken per day") +
@@ -137,7 +134,11 @@ rm(totalStepsPerDay)
 ### Mean
 
 ```r
-meanStepsPerDay <- data %>% filter(!is.na(steps)) %>% group_by(date) %>% summarize(mn = mean(steps))
+meanStepsPerDay <- data %>% 
+                    filter(!is.na(steps)) %>% 
+                    group_by(date) %>% 
+                    summarize(mn = mean(steps))
+
 ggplot(meanStepsPerDay, aes(date, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 4, alpha = 1/2)  +	
@@ -155,7 +156,11 @@ rm(meanStepsPerDay)
 ### Median
 
 ```r
-medianStepsPerDay <- data %>% filter(!is.na(steps) & steps > 0) %>% group_by(date) %>% summarize(mn = median(steps))
+medianStepsPerDay <- data %>% 
+                      filter(!is.na(steps) & steps > 0) %>% 
+                      group_by(date) %>% 
+                      summarize(mn = median(steps))
+
 ggplot(medianStepsPerDay, aes(date, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 4, alpha = 1/2)  +  
@@ -175,7 +180,11 @@ rm(medianStepsPerDay)
 1.Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
 ```r
-averageSteps <- data %>% filter(!is.na(steps)) %>% group_by(interval) %>% summarize(mn = mean(steps))
+averageSteps <- data %>% 
+                filter(!is.na(steps)) %>% 
+                group_by(interval) %>% 
+                summarize(mn = mean(steps))
+
 ggplot(averageSteps, aes(interval, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 2, alpha = 1/2)  +  
@@ -192,7 +201,11 @@ rm(averageSteps)
 2.Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 ```r
-data %>% filter(!is.na(steps)) %>% group_by(interval) %>% summarize(sm = sum(steps)) %>% top_n(1)
+data %>% 
+    filter(!is.na(steps)) %>% 
+    group_by(interval) %>% 
+    summarize(sm = sum(steps)) %>% 
+    top_n(1)
 ```
 
 ```
@@ -214,7 +227,10 @@ Note that there are a number of days/intervals where there are missing values (c
 1.Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
 ```r
-data %>% filter(is.na(steps)) %>% summarise(count = n()) %>% select(count)
+data %>% 
+    filter(is.na(steps)) %>% 
+    summarize(count = n()) %>% 
+    select(count)
 ```
 
 ```
@@ -228,13 +244,20 @@ data %>% filter(is.na(steps)) %>% summarise(count = n()) %>% select(count)
 2.Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
 
-
 3.Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
 
 ```r
-meanInt <- data %>% filter(!is.na(steps)) %>% group_by(interval) %>% summarise(mn = mean(steps))
-impute = data %>% left_join(meanInt, by="interval") %>% mutate(stepsM=ifelse(is.na(steps), mn, steps)) %>% select(stepsM, date, interval)
+meanInt <- data %>% 
+            filter(!is.na(steps)) %>% 
+            group_by(interval) %>% 
+            summarize(mn = mean(steps))
+
+impute = data %>% 
+          left_join(meanInt, by="interval") %>% 
+          mutate(stepsM=ifelse(is.na(steps), mn, steps)) %>% 
+          select(stepsM, date, interval)
+
 str(impute)
 ```
 
@@ -251,7 +274,10 @@ str(impute)
 ### Mean
 
 ```r
-meanStepsPerDay <- impute  %>% group_by(date) %>% summarize(mn = mean(stepsM))
+meanStepsPerDay <- impute  %>% 
+                    group_by(date) %>% 
+                    summarize(mn = mean(stepsM))
+
 ggplot(meanStepsPerDay, aes(date, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 4, alpha = 1/2)  +  
@@ -269,7 +295,11 @@ rm(meanStepsPerDay)
 ### Median
 
 ```r
-medianStepsPerDay <- impute %>% filter(stepsM > 0) %>% group_by(date) %>% summarize(mn = median(stepsM))
+medianStepsPerDay <- impute %>% 
+                      filter(stepsM > 0) %>% 
+                      group_by(date) %>% 
+                      summarize(mn = median(stepsM))
+
 ggplot(medianStepsPerDay, aes(date, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 4, alpha = 1/2)  +  
@@ -291,7 +321,8 @@ For this part the weekdays() function may be of some help here. Use the dataset 
 
 
 ```r
-weekData <- impute %>% mutate(dow=wday(date)) %>% 
+weekData <- impute %>% 
+              mutate(dow=wday(date)) %>% 
               mutate(dw=ifelse(dow==0 | dow == 6, "weekend", "weekday")) %>% 
               select(stepsM, interval, dw)
 ```
@@ -300,7 +331,10 @@ weekData <- impute %>% mutate(dow=wday(date)) %>%
 
 
 ```r
-groupedWeekData <- weekData %>% group_by(dw, interval) %>% summarize(mn = mean(stepsM))
+groupedWeekData <- weekData %>% 
+                    group_by(dw, interval) %>% 
+                    summarize(mn = mean(stepsM))
+
 ggplot(groupedWeekData, aes(interval, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 2, alpha = 1/2)  + 
@@ -310,4 +344,9 @@ ggplot(groupedWeekData, aes(interval, mn)) +
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+
+```r
+rm(weekData)
+rm(groupedWeekData)
+```
 
