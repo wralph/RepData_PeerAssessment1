@@ -1,13 +1,9 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
-```{r echo=TRUE}
+
+```r
 library(dplyr, quietly = TRUE, warn.conflicts = FALSE)
 zipfile <- "activity.zip"
 if(!file.exists(zipfile)) 
@@ -23,9 +19,17 @@ data <- data.raw %>% filter(!is.na(steps))
 str(data)
 ```
 
+```
+## Classes 'tbl_df', 'tbl' and 'data.frame':	15264 obs. of  3 variables:
+##  $ steps   : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ date    : POSIXct, format: "2012-10-02" "2012-10-02" ...
+##  $ interval: num  0 5 10 15 20 25 30 35 40 45 ...
+```
+
 
 ## What is mean total number of steps taken per day?
-```{r echo=TRUE}
+
+```r
 library(ggplot2)
 library(scales)
 
@@ -38,6 +42,8 @@ g <- ggplot(stepsPerDay, aes(date, mn)) +
 
 print(g)
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
 
 ## What is the average daily activity pattern?
 
