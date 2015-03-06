@@ -10,6 +10,7 @@
 library(dplyr, quietly = TRUE, warn.conflicts = FALSE)
 library(ggplot2)
 library(scales)
+library(lubridate)
 
 zipfile <- "activity.zip"
 if(!file.exists(zipfile)) 
@@ -254,7 +255,7 @@ meanStepsPerDay <- impute  %>% group_by(date) %>% summarize(mn = mean(stepsM))
 ggplot(meanStepsPerDay, aes(date, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 4, alpha = 1/2)  +  
-      labs(title = "Mean number of steps taken per day") +
+      labs(title = "Mean number of steps taken per day\n(Missing values imputed)") +
       labs(x = "Day", y = "Mean # of Steps")
 ```
 
@@ -272,7 +273,7 @@ medianStepsPerDay <- impute %>% filter(stepsM > 0) %>% group_by(date) %>% summar
 ggplot(medianStepsPerDay, aes(date, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 4, alpha = 1/2)  +  
-      labs(title = "Median number of steps taken per day") +
+      labs(title = "Median number of steps taken per day\n(Missing values imputed)") +
       labs(x = "Day", y = "Median # of Steps")
 ```
 
@@ -289,5 +290,24 @@ For this part the weekdays() function may be of some help here. Use the dataset 
 1.Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
 
+```r
+weekData <- impute %>% mutate(dow=wday(date)) %>% 
+              mutate(dw=ifelse(dow==0 | dow == 6, "weekend", "weekday")) %>% 
+              select(stepsM, interval, dw)
+```
+
 2.Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+
+
+```r
+groupedWeekData <- weekData %>% group_by(dw, interval) %>% summarize(mn = mean(stepsM))
+ggplot(groupedWeekData, aes(interval, mn)) +
+      geom_line(size=2, alpha=1/4) +
+      geom_point(size = 2, alpha = 1/2)  + 
+      facet_wrap(~dw, ncol=1) +
+      labs(title = "Mean number of steps taken per inteval") +
+      labs(x = "Interval", y = "Mean # of Steps")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
 
