@@ -113,7 +113,7 @@ Note that there are a number of days/intervals where there are missing values (c
 
 1.Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 ```{r echo=TRUE}
-data %>% filter(!is.na(steps) & !is.na(interval)) %>% summarise(count = n()) %>% select(count)
+data %>% filter(is.na(steps)) %>% summarise(count = n()) %>% select(count)
 ```
 
 
@@ -125,22 +125,21 @@ data %>% filter(!is.na(steps) & !is.na(interval)) %>% summarise(count = n()) %>%
 
 ```{r echo=TRUE}
 meanInt <- data %>% filter(!is.na(steps)) %>% group_by(interval) %>% summarise(mn = mean(steps))
-impute = data %>% left_join(meanInt, by="interval") %>% select(steps=ifelse(is.na(steps), steps, mn), date, interval)
+impute = data %>% left_join(meanInt, by="interval") %>% mutate(stepsM=ifelse(is.na(steps), mn, steps)) %>% select(stepsM, date, interval)
 str(impute)
 
 ```
 
 4.Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-# TODO this looks shaky
 
 ### Mean
 ```{r echo=TRUE}
-meanStepsPerDay <- impute  %>% group_by(date) %>% summarize(mn = mean(steps))
+meanStepsPerDay <- impute  %>% group_by(date) %>% summarize(mn = mean(stepsM))
 ggplot(meanStepsPerDay, aes(date, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 4, alpha = 1/2)  +  
-      labs(title = "Mean number of steps taken per day") +
+      labs(title = "Mean number of steps taken per day\n(Missing values imputed)") +
       labs(x = "Day", y = "Mean # of Steps")
 
 rm(meanStepsPerDay)
@@ -149,11 +148,11 @@ rm(meanStepsPerDay)
 
 ### Median
 ```{r echo=TRUE}
-medianStepsPerDay <- impute %>% filter(steps > 0) %>% group_by(date) %>% summarize(mn = median(steps))
+medianStepsPerDay <- impute %>% filter(stepsM > 0) %>% group_by(date) %>% summarize(mn = median(stepsM))
 ggplot(medianStepsPerDay, aes(date, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 4, alpha = 1/2)  +  
-      labs(title = "Median number of steps taken per day") +
+      labs(title = "Median number of steps taken per day\n(Missing values imputed)") +
       labs(x = "Day", y = "Median # of Steps")
 
 rm(medianStepsPerDay)

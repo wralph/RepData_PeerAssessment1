@@ -213,14 +213,14 @@ Note that there are a number of days/intervals where there are missing values (c
 1.Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
 ```r
-data %>% filter(!is.na(steps) & !is.na(interval)) %>% summarise(count = n()) %>% select(count)
+data %>% filter(is.na(steps)) %>% summarise(count = n()) %>% select(count)
 ```
 
 ```
 ## Source: local data frame [1 x 1]
 ## 
 ##   count
-## 1 15264
+## 1  2304
 ```
 
 
@@ -233,13 +233,13 @@ data %>% filter(!is.na(steps) & !is.na(interval)) %>% summarise(count = n()) %>%
 
 ```r
 meanInt <- data %>% filter(!is.na(steps)) %>% group_by(interval) %>% summarise(mn = mean(steps))
-impute = data %>% left_join(meanInt, by="interval") %>% select(steps=ifelse(is.na(steps), steps, mn), date, interval)
+impute = data %>% left_join(meanInt, by="interval") %>% mutate(stepsM=ifelse(is.na(steps), mn, steps)) %>% select(stepsM, date, interval)
 str(impute)
 ```
 
 ```
 ## Classes 'tbl_df', 'tbl' and 'data.frame':	17568 obs. of  3 variables:
-##  $ steps   : num  1.717 0.3396 0.1321 0.1509 0.0755 ...
+##  $ stepsM  : num  1.717 0.3396 0.1321 0.1509 0.0755 ...
 ##  $ date    : POSIXct, format: "2012-10-01" "2012-10-01" ...
 ##  $ interval: num  0 5 10 15 20 25 30 35 40 45 ...
 ```
@@ -250,7 +250,7 @@ str(impute)
 ### Mean
 
 ```r
-meanStepsPerDay <- impute  %>% group_by(date) %>% summarize(mn = mean(steps))
+meanStepsPerDay <- impute  %>% group_by(date) %>% summarize(mn = mean(stepsM))
 ggplot(meanStepsPerDay, aes(date, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 4, alpha = 1/2)  +  
@@ -268,7 +268,7 @@ rm(meanStepsPerDay)
 ### Median
 
 ```r
-medianStepsPerDay <- impute %>% filter(steps > 0) %>% group_by(date) %>% summarize(mn = median(steps))
+medianStepsPerDay <- impute %>% filter(stepsM > 0) %>% group_by(date) %>% summarize(mn = median(stepsM))
 ggplot(medianStepsPerDay, aes(date, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 4, alpha = 1/2)  +  
