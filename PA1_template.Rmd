@@ -35,9 +35,10 @@ str(data)
 ## What is mean total number of steps taken per day?
 
 1. Calculate the total number of steps taken per day
+
 ```{r echo=TRUE}
 totalStepsPerDay <- data %>% 
-                    filter(!is.na(steps)) %>% 
+                    filter(!is.na(steps) & steps > 0) %>% 
                     group_by(date) %>% 
                     summarize(tot = sum(steps))
 totalStepsPerDay
@@ -46,12 +47,15 @@ totalStepsPerDay
 2. If you do not understand the difference between a histogram and a barplot, research the difference between them. Make a histogram of the total number of steps taken each day
 
 ```{r echo=TRUE}
-ggplot(totalStepsPerDay, aes(date)) +
-      geom_histogram(alpha=1/4) +
-      labs(title = "Total number of steps taken per day") +
-      labs(x = "Day", y = "# of Steps") +
+g <- ggplot(totalStepsPerDay, aes(tot)) +
+      geom_histogram(alpha=1/4) +      
+      labs(title = "Frequency of total number of steps taken per day") +
+      labs(x = "# of Steps/Day", y = "Freq") +
       scale_y_continuous(labels = comma)
 
+suppressMessages(print(g))
+
+rm(g)
 rm(totalStepsPerDay)
 ```
 
@@ -59,43 +63,33 @@ rm(totalStepsPerDay)
 
 3. Calculate and report the mean and median of the total number of steps taken per day
 
-### Mean
 ```{r echo=TRUE}
-meanStepsPerDay <- data %>% 
-                    filter(!is.na(steps)) %>% 
+mStepsPerDay <- data %>% 
+                    filter(!is.na(steps) & steps > 0) %>% 
                     group_by(date) %>% 
-                    summarize(mn = mean(steps))
+                    summarize(mn = mean(steps), med=median(steps))
 
-ggplot(meanStepsPerDay, aes(date, mn)) +
-      geom_line(size=2, alpha=1/4) +
-      geom_point(size = 4, alpha = 1/2)  +	
-      labs(title = "Mean number of steps taken per day") +
-      labs(x = "Day", y = "Mean # of Steps")
-
-rm(meanStepsPerDay)
-```
-
-
-### Median
-```{r echo=TRUE}
-medianStepsPerDay <- data %>% 
-                      filter(!is.na(steps) & steps > 0) %>% 
-                      group_by(date) %>% 
-                      summarize(mn = median(steps))
-
-ggplot(medianStepsPerDay, aes(date, mn)) +
-      geom_line(size=2, alpha=1/4) +
-      geom_point(size = 4, alpha = 1/2)  +  
-      labs(title = "Median number of steps taken per day") +
-      labs(x = "Day", y = "Median # of Steps")
-
-rm(medianStepsPerDay)
+ggplot(mStepsPerDay) +
+      geom_line(aes(date, mn, colour="Mean"), size=2, alpha=1/4) +      
+      geom_point(aes(date, mn, colour="Mean"), size = 4, alpha = 1/2)  +
+      geom_line(aes(date, med, colour="Median"), size=2, alpha=1/4) +
+      geom_point(aes(date, med, colour="Median"), size=4, alpha=1/4) +
+      labs(title = "Mean/Median number of steps taken per day") +
+      labs(x = "Day", y = "Mean/Mean # of Steps") +      
+      scale_colour_manual("", 
+                      breaks = c("Mean", "Median"),
+                      values = c("steelblue", "olivedrab"))
+    
+rm(mStepsPerDay)
 ```
 
 ## What is the average daily activity pattern?
 
 
 1.Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+TODO: convert interval to hh:mm types
+
 ```{r echo=TRUE}
 averageSteps <- data %>% 
                 filter(!is.na(steps)) %>% 
