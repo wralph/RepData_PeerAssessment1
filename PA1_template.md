@@ -138,69 +138,6 @@ mStepsPerDay <- data %>%
                     group_by(date) %>% 
                     summarize(mn = mean(steps), med=median(steps))
 
-mStepsPerDay
-```
-
-```
-## Source: local data frame [53 x 3]
-## 
-##          date        mn   med
-## 1  2012-10-02  63.00000  63.0
-## 2  2012-10-03 140.14815  61.0
-## 3  2012-10-04 121.16000  56.5
-## 4  2012-10-05 154.58140  66.0
-## 5  2012-10-06 145.47170  67.0
-## 6  2012-10-07 101.99074  52.5
-## 7  2012-10-09 134.85263  48.0
-## 8  2012-10-10  95.19231  56.5
-## 9  2012-10-11 137.38667  35.0
-## 10 2012-10-12 156.59459  46.0
-## 11 2012-10-13 119.48077  45.5
-## 12 2012-10-14 160.61702  60.5
-## 13 2012-10-15 131.67532  54.0
-## 14 2012-10-16 157.12500  64.0
-## 15 2012-10-17 152.86364  61.5
-## 16 2012-10-18 152.36364  52.5
-## 17 2012-10-19 127.19355  74.0
-## 18 2012-10-20 125.24096  49.0
-## 19 2012-10-21  96.93407  48.0
-## 20 2012-10-22 154.71264  52.0
-## 21 2012-10-23 101.34091  56.0
-## 22 2012-10-24 104.43750  51.5
-## 23 2012-10-25  56.63636  35.0
-## 24 2012-10-26  77.02273  36.5
-## 25 2012-10-27 134.92000  72.0
-## 26 2012-10-28 110.17308  61.0
-## 27 2012-10-29  80.93548  54.5
-## 28 2012-10-30 110.32584  40.0
-## 29 2012-10-31 179.23256  83.5
-## 30 2012-11-02 143.24324  55.5
-## 31 2012-11-03 117.45556  59.0
-## 32 2012-11-05 141.06757  66.0
-## 33 2012-11-06 100.40964  52.0
-## 34 2012-11-07 135.61053  58.0
-## 35 2012-11-08  61.90385  42.5
-## 36 2012-11-11 132.71579  55.0
-## 37 2012-11-12 156.01449  42.0
-## 38 2012-11-13  90.56790  57.0
-## 39 2012-11-15  20.50000  20.5
-## 40 2012-11-16  89.19672  43.0
-## 41 2012-11-17 183.83333  65.5
-## 42 2012-11-18 162.47312  80.0
-## 43 2012-11-19 117.88000  34.0
-## 44 2012-11-20  95.14894  58.0
-## 45 2012-11-21 188.04412  55.0
-## 46 2012-11-22 177.62609  65.0
-## 47 2012-11-23 252.30952 113.0
-## 48 2012-11-24 176.56098  65.5
-## 49 2012-11-25 140.88095  84.0
-## 50 2012-11-26 128.29885  53.0
-## 51 2012-11-27 158.67442  57.0
-## 52 2012-11-28 212.14583  70.0
-## 53 2012-11-29 110.10938  44.5
-```
-
-```r
 ggplot(mStepsPerDay) +
       geom_line(aes(date, mn, colour="Mean"), size=2, alpha=1/4) +      
       geom_point(aes(date, mn, colour="Mean"), size = 4, alpha = 1/2)  +
@@ -224,16 +161,21 @@ rm(mStepsPerDay)
 
 1.Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
-TODO: convert interval to hh:mm types
+
+Here I am converting the interval to regulare POSIXct values in order to avoid some shaky graph behavior due to missing intervals
+
 
 
 ```r
 averageSteps <- data %>% 
-                filter(!is.na(steps)) %>% 
-                group_by(interval) %>% 
+                filter(!is.na(steps)& steps > 0) %>% 
+                mutate(intv=sprintf("%04d", interval)) %>%
+                mutate(intv= intv %>% strptime("%H%M") %>% as.character()) %>%
+                mutate(intv=ymd_hms(intv)) %>%
+                group_by(intv) %>% 
                 summarize(mn = mean(steps))
 
-ggplot(averageSteps, aes(interval, mn)) +
+ggplot(averageSteps, aes(intv, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 2, alpha = 1/2)  +  
       labs(title = "Mean number of steps taken per inteval") +
@@ -306,60 +248,74 @@ impute = data %>%
           mutate(stepsM=ifelse(is.na(steps), mn, steps)) %>% 
           select(stepsM, date, interval)
 
-str(impute)
+cleaned <- impute %>% 
+                mutate(intv=sprintf("%04d", interval)) %>%
+                mutate(intv= intv %>% strptime("%H%M") %>% as.character()) %>%
+                mutate(intv=ymd_hms(intv))                
+
+str(cleaned)
 ```
 
 ```
-## Classes 'tbl_df', 'tbl' and 'data.frame':	17568 obs. of  3 variables:
+## Classes 'tbl_df', 'tbl' and 'data.frame':	17568 obs. of  4 variables:
 ##  $ stepsM  : num  1.717 0.3396 0.1321 0.1509 0.0755 ...
 ##  $ date    : POSIXct, format: "2012-10-01" "2012-10-01" ...
 ##  $ interval: num  0 5 10 15 20 25 30 35 40 45 ...
+##  $ intv    : POSIXct, format: "2015-03-09 00:00:00" "2015-03-09 00:05:00" ...
+```
+
+```r
+rm(impute)
+rm(meanInt)
 ```
 
 4.Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-
-### Mean
+## Histogram for imputed data
 
 ```r
-meanStepsPerDay <- impute  %>% 
+totalStepsPerDay <- cleaned %>% 
+                    filter(stepsM > 0) %>% 
                     group_by(date) %>% 
-                    summarize(mn = mean(stepsM))
+                    summarize(tot = sum(stepsM))
 
-ggplot(meanStepsPerDay, aes(date, mn)) +
-      geom_line(size=2, alpha=1/4) +
-      geom_point(size = 4, alpha = 1/2)  +  
-      labs(title = "Mean number of steps taken per day\n(Missing values imputed)") +
-      labs(x = "Day", y = "Mean # of Steps")
+g <- ggplot(totalStepsPerDay, aes(tot)) +
+      geom_histogram(alpha=1/4) +      
+      labs(title = "Frequency of total number of steps taken per day\nbased on imputed data") +
+      labs(x = "# of Steps/Day", y = "Freq") +
+      scale_y_continuous(labels = comma)
+
+suppressMessages(print(g))
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 
 
 ```r
-rm(meanStepsPerDay)
+rm(g)
+rm(totalStepsPerDay)
 ```
 
-
-### Median
+## Mean and Median of imputed data
 
 ```r
-medianStepsPerDay <- impute %>% 
-                      filter(stepsM > 0) %>% 
-                      group_by(date) %>% 
-                      summarize(mn = median(stepsM))
+mStepsPerDay <- cleaned %>% 
+                    filter(stepsM > 0) %>% 
+                    group_by(date) %>% 
+                    summarize(mn = mean(stepsM), med=median(stepsM))
 
-ggplot(medianStepsPerDay, aes(date, mn)) +
-      geom_line(size=2, alpha=1/4) +
-      geom_point(size = 4, alpha = 1/2)  +  
-      labs(title = "Median number of steps taken per day\n(Missing values imputed)") +
-      labs(x = "Day", y = "Median # of Steps")
+ggplot(mStepsPerDay) +
+      geom_line(aes(date, mn, colour="Mean"), size=2, alpha=1/4) +      
+      geom_point(aes(date, mn, colour="Mean"), size = 4, alpha = 1/2)  +
+      geom_line(aes(date, med, colour="Median"), size=2, alpha=1/4) +
+      geom_point(aes(date, med, colour="Median"), size=4, alpha=1/4) +
+      labs(title = "Mean/Median number of steps taken per day") +
+      labs(x = "Day", y = "Mean/Mean # of Steps") +      
+      scale_colour_manual("", 
+                      breaks = c("Mean", "Median"),
+                      values = c("steelblue", "olivedrab"))
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
-
-```r
-rm(medianStepsPerDay)
-```
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -369,10 +325,10 @@ For this part the weekdays() function may be of some help here. Use the dataset 
 
 
 ```r
-weekData <- impute %>% 
+weekData <- cleaned %>% 
               mutate(dow=wday(date)) %>% 
               mutate(dw=ifelse(dow==0 | dow == 6, "weekend", "weekday")) %>% 
-              select(stepsM, interval, dw)
+              select(stepsM, intv, dw)
 ```
 
 2.Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
@@ -380,14 +336,14 @@ weekData <- impute %>%
 
 ```r
 groupedWeekData <- weekData %>% 
-                    group_by(dw, interval) %>% 
+                    group_by(dw, intv) %>% 
                     summarize(mn = mean(stepsM))
 
-ggplot(groupedWeekData, aes(interval, mn)) +
+ggplot(groupedWeekData, aes(intv, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 2, alpha = 1/2)  + 
       facet_wrap(~dw, ncol=1) +
-      labs(title = "Mean number of steps taken per inteval") +
+      labs(title = "Mean number of steps taken per interval") +
       labs(x = "Interval", y = "Mean # of Steps")
 ```
 

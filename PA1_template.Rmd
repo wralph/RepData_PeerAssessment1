@@ -88,15 +88,20 @@ rm(mStepsPerDay)
 
 1.Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
-TODO: convert interval to hh:mm types
+
+Here I am converting the interval to regulare POSIXct values in order to avoid some shaky graph behavior due to missing intervals
+
 
 ```{r echo=TRUE}
 averageSteps <- data %>% 
-                filter(!is.na(steps)) %>% 
-                group_by(interval) %>% 
+                filter(!is.na(steps)& steps > 0) %>% 
+                mutate(intv=sprintf("%04d", interval)) %>%
+                mutate(intv= intv %>% strptime("%H%M") %>% as.character()) %>%
+                mutate(intv=ymd_hms(intv)) %>%
+                group_by(intv) %>% 
                 summarize(mn = mean(steps))
 
-ggplot(averageSteps, aes(interval, mn)) +
+ggplot(averageSteps, aes(intv, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 2, alpha = 1/2)  +  
       labs(title = "Mean number of steps taken per inteval") +
@@ -144,43 +149,55 @@ impute = data %>%
           mutate(stepsM=ifelse(is.na(steps), mn, steps)) %>% 
           select(stepsM, date, interval)
 
-str(impute)
+cleaned <- impute %>% 
+                mutate(intv=sprintf("%04d", interval)) %>%
+                mutate(intv= intv %>% strptime("%H%M") %>% as.character()) %>%
+                mutate(intv=ymd_hms(intv))                
+
+str(cleaned)
+rm(impute)
+rm(meanInt)
 
 ```
 
 4.Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-
-### Mean
+## Histogram for imputed data
 ```{r echo=TRUE}
-meanStepsPerDay <- impute  %>% 
+totalStepsPerDay <- cleaned %>% 
+                    filter(stepsM > 0) %>% 
                     group_by(date) %>% 
-                    summarize(mn = mean(stepsM))
+                    summarize(tot = sum(stepsM))
 
-ggplot(meanStepsPerDay, aes(date, mn)) +
-      geom_line(size=2, alpha=1/4) +
-      geom_point(size = 4, alpha = 1/2)  +  
-      labs(title = "Mean number of steps taken per day\n(Missing values imputed)") +
-      labs(x = "Day", y = "Mean # of Steps")
+g <- ggplot(totalStepsPerDay, aes(tot)) +
+      geom_histogram(alpha=1/4) +      
+      labs(title = "Frequency of total number of steps taken per day\nbased on imputed data") +
+      labs(x = "# of Steps/Day", y = "Freq") +
+      scale_y_continuous(labels = comma)
 
-rm(meanStepsPerDay)
+suppressMessages(print(g))
+
+rm(g)
+rm(totalStepsPerDay)
 ```
 
-
-### Median
+## Mean and Median of imputed data
 ```{r echo=TRUE}
-medianStepsPerDay <- impute %>% 
-                      filter(stepsM > 0) %>% 
-                      group_by(date) %>% 
-                      summarize(mn = median(stepsM))
+mStepsPerDay <- cleaned %>% 
+                    filter(stepsM > 0) %>% 
+                    group_by(date) %>% 
+                    summarize(mn = mean(stepsM), med=median(stepsM))
 
-ggplot(medianStepsPerDay, aes(date, mn)) +
-      geom_line(size=2, alpha=1/4) +
-      geom_point(size = 4, alpha = 1/2)  +  
-      labs(title = "Median number of steps taken per day\n(Missing values imputed)") +
-      labs(x = "Day", y = "Median # of Steps")
-
-rm(medianStepsPerDay)
+ggplot(mStepsPerDay) +
+      geom_line(aes(date, mn, colour="Mean"), size=2, alpha=1/4) +      
+      geom_point(aes(date, mn, colour="Mean"), size = 4, alpha = 1/2)  +
+      geom_line(aes(date, med, colour="Median"), size=2, alpha=1/4) +
+      geom_point(aes(date, med, colour="Median"), size=4, alpha=1/4) +
+      labs(title = "Mean/Median number of steps taken per day") +
+      labs(x = "Day", y = "Mean/Mean # of Steps") +      
+      scale_colour_manual("", 
+                      breaks = c("Mean", "Median"),
+                      values = c("steelblue", "olivedrab"))
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -190,24 +207,24 @@ For this part the weekdays() function may be of some help here. Use the dataset 
 1.Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
 ```{r echo=TRUE}
-weekData <- impute %>% 
+weekData <- cleaned %>% 
               mutate(dow=wday(date)) %>% 
               mutate(dw=ifelse(dow==0 | dow == 6, "weekend", "weekday")) %>% 
-              select(stepsM, interval, dw)
+              select(stepsM, intv, dw)
 ```
 
 2.Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
 
 ```{r echo=TRUE}
 groupedWeekData <- weekData %>% 
-                    group_by(dw, interval) %>% 
+                    group_by(dw, intv) %>% 
                     summarize(mn = mean(stepsM))
 
-ggplot(groupedWeekData, aes(interval, mn)) +
+ggplot(groupedWeekData, aes(intv, mn)) +
       geom_line(size=2, alpha=1/4) +
       geom_point(size = 2, alpha = 1/2)  + 
       facet_wrap(~dw, ncol=1) +
-      labs(title = "Mean number of steps taken per inteval") +
+      labs(title = "Mean number of steps taken per interval") +
       labs(x = "Interval", y = "Mean # of Steps")
 
 rm(weekData)
