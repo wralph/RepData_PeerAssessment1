@@ -1,9 +1,5 @@
 # Reproducible Research: Peer Assessment 1
 
-#```{r setoptions,echo=FALSE}
-#opts_chunk$set(echo=TRUE)
-#```
-
 ## Loading and preprocessing the data
 
 ```r
@@ -112,7 +108,8 @@ totalStepsPerDay
 
 ```r
 g <- ggplot(totalStepsPerDay, aes(tot)) +
-      geom_histogram(alpha=1/4) +      
+      geom_histogram(alpha=3/4, col="gray", aes(fill=..count..)) +      
+      scale_fill_gradient("Count", low = "green", high = "red") +
       labs(title = "Frequency of total number of steps taken per day") +
       labs(x = "# of Steps/Day", y = "Freq") +
       scale_y_continuous(labels = comma)
@@ -140,9 +137,9 @@ mStepsPerDay <- data %>%
 
 ggplot(mStepsPerDay) +
       geom_line(aes(date, mn, colour="Mean"), size=2, alpha=1/4) +      
-      geom_point(aes(date, mn, colour="Mean"), size = 4, alpha = 1/2)  +
+      geom_point(aes(date, mn, colour="Mean"), size=2, alpha = 1/2)  +
       geom_line(aes(date, med, colour="Median"), size=2, alpha=1/4) +
-      geom_point(aes(date, med, colour="Median"), size=4, alpha=1/4) +
+      geom_point(aes(date, med, colour="Median"), size=2, alpha=1/2) +
       labs(title = "Mean/Median number of steps taken per day") +
       labs(x = "Day", y = "Mean/Mean # of Steps") +      
       scale_colour_manual("", 
@@ -263,7 +260,7 @@ str(cleaned)
 ##  $ stepsM  : num  1.717 0.3396 0.1321 0.1509 0.0755 ...
 ##  $ date    : POSIXct, format: "2012-10-01" "2012-10-01" ...
 ##  $ interval: num  0 5 10 15 20 25 30 35 40 45 ...
-##  $ intv    : POSIXct, format: "2015-03-09 00:00:00" "2015-03-09 00:05:00" ...
+##  $ intv    : POSIXct, format: "2015-03-13 00:00:00" "2015-03-13 00:05:00" ...
 ```
 
 ```r
@@ -282,8 +279,9 @@ totalStepsPerDay <- cleaned %>%
                     summarize(tot = sum(stepsM))
 
 g <- ggplot(totalStepsPerDay, aes(tot)) +
-      geom_histogram(alpha=1/4) +      
-      labs(title = "Frequency of total number of steps taken per day\nbased on imputed data") +
+      geom_histogram(alpha=3/4, col="gray", aes(fill=..count..)) +      
+      scale_fill_gradient("Count", low = "green", high = "red") +
+      labs(title = "Frequency of total number of steps taken per day") +
       labs(x = "# of Steps/Day", y = "Freq") +
       scale_y_continuous(labels = comma)
 
@@ -307,9 +305,9 @@ mStepsPerDay <- cleaned %>%
 
 ggplot(mStepsPerDay) +
       geom_line(aes(date, mn, colour="Mean"), size=2, alpha=1/4) +      
-      geom_point(aes(date, mn, colour="Mean"), size = 4, alpha = 1/2)  +
+      geom_point(aes(date, mn, colour="Mean"), size=2, alpha = 1/2)  +
       geom_line(aes(date, med, colour="Median"), size=2, alpha=1/4) +
-      geom_point(aes(date, med, colour="Median"), size=4, alpha=1/4) +
+      geom_point(aes(date, med, colour="Median"), size=2, alpha=1/2) +
       labs(title = "Mean/Median number of steps taken per day") +
       labs(x = "Day", y = "Mean/Mean # of Steps") +      
       scale_colour_manual("", 
